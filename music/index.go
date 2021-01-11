@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/barasher/go-exiftool"
+	"github.com/graphql-go/graphql"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,26 +15,78 @@ import (
 )
 
 type Track struct {
-	Tno   string `json:"tno"`
-	Tname string `json:"tname"`
-	Tdur  string `json:"tdur"`
-	Path  string `json:"path"`
+	Tno   string `json:"tno" bson:"tno"`
+	Tname string `json:"tname" bson:"tname"`
+	Tdur  string `json:"tdur" bson:"tdur"`
+	Path  string `json:"path" bson:"path"`
 }
+
+var TrackG = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Track",
+	Fields: graphql.Fields{
+		"tno": &graphql.Field{
+			Type: graphql.String,
+		},
+		"tname": &graphql.Field{
+			Type: graphql.String,
+		},
+		"tdu": &graphql.Field{
+			Type: graphql.String,
+		},
+		"path": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
 
 type Album struct {
-	Genre  string  `json:"genre"`
-	Tracks []Track `json:"tracks"`
+	Name   string  `json:"name" bson:"name"`
+	Genre  string  `json:"genre" bson:"genre"`
+	Tracks []Track `json:"tracks" bson:"tracks"`
 }
 
-type Artist struct {
+var AlbumG = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Album",
+	Fields: graphql.Fields{
+		"name": &graphql.Field{
+			Type: graphql.String,
+		},
+		"genre": &graphql.Field{
+			Type: graphql.String,
+		},
+		"tracks": &graphql.Field{
+			Type: graphql.NewList(TrackG),
+		},
+	},
+})
+
+type Artist_T struct {
 	Albums map[string]*Album `json:"albums"`
 }
 
-var Artists map[string]Artist
+type ArtistJ struct {
+	Name   string  `json:"name" bson:"name"`
+	Albums []Album `json:"albums" bson:"albums"`
+}
+
+var ArtistG = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Artist",
+	Fields: graphql.Fields{
+		"name": &graphql.Field{
+			Type: graphql.String,
+		},
+		"albums": &graphql.Field{
+			Type: graphql.NewList(AlbumG),
+		},
+	},
+})
+
+var Artists map[string]Artist_T
+var ArtistsJ []ArtistJ
 
 func scan(path string) {
 	// path := "/home/legendrian/Music/Arctic Monkeys"
-	Artists = make(map[string]Artist)
+	Artists = make(map[string]Artist_T)
 
 	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -50,6 +103,10 @@ func scan(path string) {
 
 		defer et.Close()
 
+		if info.IsDir() {
+			fmt.Println(path)
+		}
+
 		fInfo := et.ExtractMetadata(path)
 		mime_t, ok := fInfo[0].Fields["MIMEType"].(string)
 
@@ -62,12 +119,12 @@ func scan(path string) {
 			album, _ := fInfo[0].Fields["Album"].(string)
 
 			if _, ok := Artists[artist]; !ok {
-				Artists[artist] = Artist{map[string]*Album{}}
+				Artists[artist] = Artist_T{map[string]*Album{}}
 			}
 
 			if _, ok := Artists[artist].Albums[album]; !ok {
 				genre := fInfo[0].Fields["Genre"].(string)
-				Artists[artist].Albums[album] = &Album{genre, []Track{}}
+				Artists[artist].Albums[album] = &Album{album, genre, []Track{}}
 				Artists[artist].Albums[album].Genre = genre
 			}
 
@@ -81,12 +138,28 @@ func scan(path string) {
 		fmt.Println(err)
 	}
 
-	b, err := json.Marshal(Artists["Arctic Monkeys"])
+	for k, v := range Artists {
+		var albumsj []Album
 
-	if err == nil {
-		fmt.Printf("%s\n", b)
+		for _, va := range v.Albums {
+			albumsj = append(albumsj, *va)
+		}
+
+		ArtistsJ = append(ArtistsJ, ArtistJ{k, albumsj})
 	}
 }
+
+var QueryType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Query",
+	Fields: graphql.Fields{
+		"list": &graphql.Field{
+			Type: graphql.NewList(ArtistG),
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				return ArtistsJ, nil
+			},
+		},
+	},
+})
 
 func Ls(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
