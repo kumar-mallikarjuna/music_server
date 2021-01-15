@@ -1,0 +1,132 @@
+
+
+VARIABLES
+var AlbumG = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Album",
+	Fields: graphql.Fields{
+		"name": &graphql.Field{
+			Type: graphql.String,
+		},
+		"genre": &graphql.Field{
+			Type: graphql.String,
+		},
+		"tracks": &graphql.Field{
+			Type: graphql.NewList(TrackG),
+		},
+	},
+})
+    Album type (GraphQL)
+
+var ArtistG = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Artist",
+	Fields: graphql.Fields{
+		"name": &graphql.Field{
+			Type: graphql.String,
+		},
+		"albums": &graphql.Field{
+			Type: graphql.NewList(AlbumG),
+		},
+	},
+})
+    Artists GraphQL type
+
+var Artists map[string]Artist_T
+    Global map of Artists
+
+var ArtistsJ []ArtistJ
+    Global array of Artists (for JSON/BSON)
+
+var Client *mongo.Client
+    MongoDB Client
+
+var QueryType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Query",
+	Fields: graphql.Fields{
+		"list": &graphql.Field{
+			Type: graphql.NewList(ArtistG),
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				return ArtistsJ, nil
+			},
+		},
+	},
+})
+    Query Fields for GraphQL interface
+
+var TrackG = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Track",
+	Fields: graphql.Fields{
+		"tno": &graphql.Field{
+			Type: graphql.String,
+		},
+		"tname": &graphql.Field{
+			Type: graphql.String,
+		},
+		"tdu": &graphql.Field{
+			Type: graphql.String,
+		},
+		"path": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
+    Track type (GraphQL)
+
+var schema graphql.Schema
+    GraphQL schema
+
+
+FUNCTIONS
+
+func InsertIntoDB()
+    Inserts var ArtistsJ to database
+
+func Ls(w http.ResponseWriter, r *http.Request)
+    Scan specified path (returns JSON)
+
+func Scan(path string)
+    Scan path to define Artists/ArtistsJ
+
+func api(w http.ResponseWriter, r *http.Request)
+    API Handler
+
+func greet(w http.ResponseWriter, r *http.Request)
+    Default endpoint handler
+
+func main()
+func neuter(handler http.Handler) http.Handler
+    Neuter for Static File Server
+
+
+TYPES
+
+type Album struct {
+	Name   string  `json:"name" bson:"name"`
+	Genre  string  `json:"genre" bson:"genre"`
+	Tracks []Track `json:"tracks" bson:"tracks"`
+}
+    Album struct
+
+type ArtistJ struct {
+	Name   string  `json:"name" bson:"name"`
+	Albums []Album `json:"albums" bson:"albums"`
+}
+    Artists JSON/BSON struct
+
+type Artist_T struct {
+	Albums map[string]*Album `json:"albums"`
+}
+    Artists map
+
+type MusicDoc struct {
+	ID       primitive.ObjectID `bson:"_id"`
+	ArtistsB []ArtistJ          `bson:"artists"`
+}
+    MongoDB DOC struct
+
+type Track struct {
+	Tno   string `json:"tno" bson:"tno"`
+	Tname string `json:"tname" bson:"tname"`
+	Tdur  string `json:"tdur" bson:"tdur"`
+	Path  string `json:"path" bson:"path"`
+}
+    Track struct

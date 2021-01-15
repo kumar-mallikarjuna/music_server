@@ -14,6 +14,7 @@ import (
 	"strings"
 )
 
+// Track struct
 type Track struct {
 	Tno   string `json:"tno" bson:"tno"`
 	Tname string `json:"tname" bson:"tname"`
@@ -21,6 +22,7 @@ type Track struct {
 	Path  string `json:"path" bson:"path"`
 }
 
+// Track type (GraphQL)
 var TrackG = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Track",
 	Fields: graphql.Fields{
@@ -39,12 +41,14 @@ var TrackG = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+// Album struct
 type Album struct {
 	Name   string  `json:"name" bson:"name"`
 	Genre  string  `json:"genre" bson:"genre"`
 	Tracks []Track `json:"tracks" bson:"tracks"`
 }
 
+// Album type (GraphQL)
 var AlbumG = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Album",
 	Fields: graphql.Fields{
@@ -60,15 +64,18 @@ var AlbumG = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+// Artists map
 type Artist_T struct {
 	Albums map[string]*Album `json:"albums"`
 }
 
+// Artists JSON/BSON struct
 type ArtistJ struct {
 	Name   string  `json:"name" bson:"name"`
 	Albums []Album `json:"albums" bson:"albums"`
 }
 
+// Artists GraphQL type
 var ArtistG = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Artist",
 	Fields: graphql.Fields{
@@ -81,10 +88,14 @@ var ArtistG = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+// Global map of Artists
 var Artists map[string]Artist_T
+
+// Global array of Artists (for JSON/BSON)
 var ArtistsJ []ArtistJ
 
-func scan(path string) {
+// Scan path to define Artists/ArtistsJ
+func Scan(path string) {
 	// path := "/home/legendrian/Music/Arctic Monkeys"
 	Artists = make(map[string]Artist_T)
 
@@ -149,6 +160,7 @@ func scan(path string) {
 	}
 }
 
+// Query Fields for GraphQL interface
 var QueryType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Query",
 	Fields: graphql.Fields{
@@ -161,6 +173,7 @@ var QueryType = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+// Scan specified path (returns JSON)
 func Ls(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 

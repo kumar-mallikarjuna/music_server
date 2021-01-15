@@ -14,7 +14,10 @@ import (
 	"time"
 )
 
+// MongoDB Client
 var Client *mongo.Client
+
+// GraphQL schema
 var schema graphql.Schema
 
 func main() {
@@ -36,8 +39,10 @@ func main() {
 
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 
+	// Set ArtistsJ from DB (first document)
 	ArtistsJ = resO.ArtistsB
 
 	if err != nil {
@@ -45,16 +50,22 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Static (Songs) File Server
 	fs := http.FileServer(http.Dir("/home/legendrian/Music/"))
 
+	// Default endpoint
 	http.HandleFunc("/", greet)
+	// Endpoint for statics
 	http.Handle("/static/", http.StripPrefix("/static", neuter(fs)))
+	// Endpoint for ls
 	http.HandleFunc("/ls/", Ls)
+	// GraphQL API endpoint
 	http.HandleFunc("/api/", api)
 
 	http.ListenAndServe(":8080", nil)
 }
 
+// Default endpoint handler
 func greet(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -64,6 +75,7 @@ func greet(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hey!")
 }
 
+// Neuter for Static File Server
 func neuter(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "/") {
@@ -75,6 +87,7 @@ func neuter(handler http.Handler) http.Handler {
 	})
 }
 
+// API Handler
 func api(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 
