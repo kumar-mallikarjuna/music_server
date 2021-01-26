@@ -43,7 +43,7 @@ var TrackG = graphql.NewObject(graphql.ObjectConfig{
 
 // Album struct
 type Album struct {
-	Name   string  `json:"name" bson:"name"`
+	Name   string  `json:"name" bson:"_id"`
 	Genre  string  `json:"genre" bson:"genre"`
 	Tracks []Track `json:"tracks" bson:"tracks"`
 }
@@ -71,7 +71,7 @@ type Artist_T struct {
 
 // Artists JSON/BSON struct
 type ArtistJ struct {
-	Name   string  `json:"name" bson:"name"`
+	Name   string  `json:"name" bson:"_id"`
 	Albums []Album `json:"albums" bson:"albums"`
 }
 
@@ -122,12 +122,12 @@ func Scan(path string) {
 		mime_t, ok := fInfo[0].Fields["MIMEType"].(string)
 
 		if ok && strings.HasPrefix(mime_t, "audio") {
-			tno, _ := fInfo[0].Fields["TrackNumber"].(string)
+			tno, _ := fInfo[0].GetString("TrackNumber")
 
-			tname, _ := fInfo[0].Fields["Title"].(string)
-			tdur, _ := fInfo[0].Fields["Duration"].(string)
-			artist, _ := fInfo[0].Fields["Artist"].(string)
-			album, _ := fInfo[0].Fields["Album"].(string)
+			tname, _ := fInfo[0].GetString("Title")
+			tdur, _ := fInfo[0].GetString("Duration")
+			artist, _ := fInfo[0].GetString("Artist")
+			album, _ := fInfo[0].GetString("Album")
 
 			if _, ok := Artists[artist]; !ok {
 				Artists[artist] = Artist_T{map[string]*Album{}}
@@ -158,6 +158,8 @@ func Scan(path string) {
 
 		ArtistsJ = append(ArtistsJ, ArtistJ{k, albumsj})
 	}
+
+	UpdateIndex(path)
 }
 
 // Query Fields for GraphQL interface

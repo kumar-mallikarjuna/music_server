@@ -9,7 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -33,13 +32,19 @@ func main() {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	Client, err = mongo.Connect(context.TODO(), clientOptions)
 
+	Scan("/home/legendrian/Music/Breaking Benjamin/")
+
+	/*
+		db.music.update({}, { $pull: { "artists.$[].albums.$[].tracks": {tname: "Without You"} } })
+		db.music.update({}, { $pull: { "artists.$[].albums": {_id: "Dear Agony (Japanese Edition)"} } })
+	*/
+
 	ctx, _ := context.WithTimeout(context.Background(), 15*time.Second)
 	col := Client.Database("home_server").Collection("music")
 	err = col.FindOne(ctx, bson.D{}).Decode(&resO)
 
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
 	}
 
 	// Set ArtistsJ from DB (first document)
@@ -47,7 +52,6 @@ func main() {
 
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
 	}
 
 	// Static (Songs) File Server
