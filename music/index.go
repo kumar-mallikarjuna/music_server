@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/barasher/go-exiftool"
-	"github.com/graphql-go/graphql"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,6 +10,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/barasher/go-exiftool"
+	"github.com/graphql-go/graphql"
 )
 
 // Track struct
