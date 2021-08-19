@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/graphql-go/graphql"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"net/http"
-	"strings"
-	"time"
 )
 
 // MongoDB Client
@@ -32,7 +33,7 @@ func main() {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	Client, err = mongo.Connect(context.TODO(), clientOptions)
 
-	Scan("/home/legendrian/Music/Breaking Benjamin/")
+	Scan("")
 
 	/*
 		db.music.update({}, { $pull: { "artists.$[].albums.$[].tracks": {tname: "Without You"} } })
@@ -55,7 +56,7 @@ func main() {
 	}
 
 	// Static (Songs) File Server
-	fs := http.FileServer(http.Dir("/home/legendrian/Music/"))
+	fs := http.FileServer(http.Dir(""))
 
 	// Default endpoint
 	http.HandleFunc("/", greet)

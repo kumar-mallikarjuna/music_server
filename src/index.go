@@ -97,7 +97,6 @@ var ArtistsJ []ArtistJ
 
 // Scan path to define Artists/ArtistsJ
 func Scan(path string) {
-	// path := "/home/legendrian/Music/Arctic Monkeys"
 	Artists = make(map[string]Artist_T)
 
 	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
@@ -183,7 +182,7 @@ func Ls(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		loc, err := url.PathUnescape(r.URL.EscapedPath())
-		ls, err := ioutil.ReadDir("/home/legendrian/Music/" + loc[4:])
+		ls, err := ioutil.ReadDir("" + loc[4:])
 		fnames := []string{}
 
 		if err != nil {
